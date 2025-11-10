@@ -1,1 +1,9 @@
-mysql/
+# Ignorar toda carpeta mysql en cualquier ubicación
+**/mysql/
+
+# Ignorar también el contenido de estas carpetas
+**/mysql/*
+
+# Backup files
+*.sql.gz
+*.sql.bak
