@@ -21,8 +21,6 @@ if (!$conn) {
     die("Error conectando a la base de datos. Por favor, intenta más tarde.");
 }
 
-define('ROOT_DIR', "/var/www/html/intranet/");
-
 // Test de conexión (opcional - quitar en producción)
 // echo "✅ Conectado a BD externa: " . $hostname;
 ?>

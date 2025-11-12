@@ -1,5 +1,13 @@
 <?php
 session_start();
+
+// Verificar si NO está logueado
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login/index.php');
+    exit;
+}
+
+
 // Incluir conexión a la base de datos
 require_once '../conn.php';
 

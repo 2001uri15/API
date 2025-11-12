@@ -14,6 +14,7 @@
         padding: 18px;
         box-sizing: border-box;
         overflow-y: auto;
+        z-index: 999;
     }
 
     .sidebar h3 {
@@ -49,17 +50,32 @@
     /* espacio para el contenido principal a la derecha */
     .main-content-wrapper {
         margin-left: 240px;
-        padding: 12px;
+        padding: 20px;
+        min-height: calc(100vh - 120px);
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 100%;
+            position: relative;
+            height: auto;
+        }
+        
+        .main-content-wrapper {
+            margin-left: 0;
+            padding: 15px;
+        }
     }
 </style>
 
 <aside class="sidebar">
-    <h3>Menú</h3>
     <ul>
+        <li><a href="/index.php">Inicio</a></li>
+        <li><a href="/chat/index.php">Chat</a></li>
         <li><a href="/calendario/index.php">Calendario</a></li>
-        <li><a href="/calendario/cl/usuarios.php">Usuarios</a></li>
-        <!-- Opción 'Eventos' eliminada por petición -->
-        <li><a href="/calendario/cl/config.php">Configuración</a></li>
+        <li><a href="/usuarios/index.php">Usuarios</a></li>
+        <li><a href="/config/index.php">Configuración</a></li>
+        <li><a href="/login/logout.php">Cerrar sesión</a></li>
     </ul>
 </aside>
 

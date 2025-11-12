@@ -10,11 +10,13 @@
     
     <!-- CSS global -->
     <link rel="stylesheet" href="/calendario/estilos/estilos.css">
+    <link rel="stylesheet" href="/templates/css/estilos.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- JS global (opcional) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <!-- Header styles (inline for quick local edits) -->
     <style>
         /* Header layout */
@@ -30,6 +32,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            margin-left: 220px; /* Para compensar el sidebar */
         }
 
         header .logo {
@@ -72,10 +75,21 @@
             background: rgba(255,255,255,0.18);
         }
 
-        @media (max-width: 600px) {
-            header { padding: 10px; }
-            header h1 { font-size: 1rem; }
-            .header-actions .btn { padding: 6px 8px; font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            header {
+                margin-left: 0;
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            header h1 { 
+                font-size: 1rem; 
+            }
+            
+            .header-actions .btn { 
+                padding: 6px 8px; 
+                font-size: 0.9rem; 
+            }
         }
     </style>
 </head>
@@ -87,6 +101,7 @@
         </div>
 
         <div class="header-actions">
+            <span>¡Hola, <?php echo htmlspecialchars($_SESSION['username'] ?? 'Invitado'); ?>!</span>
             <button class="btn" onclick="location.href='/'"><i class="fa-solid fa-house"></i>&nbsp;Inicio</button>
             <button class="btn" onclick="window.scrollTo(0,0)"><i class="fa-solid fa-arrow-up"></i>&nbsp;Ir arriba</button>
         </div>
