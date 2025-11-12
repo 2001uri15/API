@@ -372,7 +372,8 @@
             <h2>Gestiona tus eventos de forma profesional</h2>
             <p>Mi Calendario API te permite organizar, sincronizar y compartir tus eventos de manera eficiente con una interfaz intuitiva y potentes funciones de integración.</p>
             <div class="hero-buttons">
-                <a href="/login/index.php" class="btn">Iniciar Sesión</a>
+                <a href="login/index.php" class="btn">Iniciar Sesión</a>
+                <button id="openRegisterBtn" class="btn btn-outline">Registrarse</button>
                 <a href="#features" class="btn btn-outline">Conocer Más</a>
             </div>
         </div>
@@ -423,10 +424,144 @@
         <div class="container">
             <h2>¿Listo para optimizar tu gestión de eventos?</h2>
             <p>Únete a miles de usuarios que ya confían en Mi Calendario API para organizar sus eventos de manera profesional.</p>
-            <a href="/login/index.php" class="btn">Comenzar Ahora</a>
+            <a href="login/index.php" class="btn">Comenzar Ahora</a>
         </div>
     </section>
     
+    <!-- Registration Modal -->
+    <div id="registerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:2000;">
+        <div style="background:white; border-radius:8px; width:95%; max-width:520px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.2); position:relative;">
+            <button id="closeRegister" style="position:absolute; right:12px; top:12px; background:transparent; border:none; font-size:18px; cursor:pointer;">✕</button>
+            <h2 style="margin-top:0;">Crear cuenta</h2>
+            <div id="regMsg" style="margin-bottom:10px;color:red;"></div>
+            <form id="homeRegisterForm">
+                <div style="margin-bottom:10px;">
+                    <label for="r_username">Usuario</label>
+                    <input id="r_username" name="username" type="text" required maxlength="50" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                </div>
+                <div style="margin-bottom:10px;display:flex;gap:10px;">
+                    <div style="flex:1;">
+                        <label for="r_name">Nombre</label>
+                        <input id="r_name" name="name" type="text" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="r_surname">Apellidos</label>
+                        <input id="r_surname" name="surname" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    </div>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label for="r_email">Correo</label>
+                    <input id="r_email" name="email" type="email" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                </div>
+                <div style="margin-bottom:10px;display:flex;gap:10px;">
+                    <div style="flex:1;">
+                        <label for="r_password">Contraseña</label>
+                        <input id="r_password" name="password" type="password" required minlength="6" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="r_password2">Confirmar</label>
+                        <input id="r_password2" name="password2" type="password" required minlength="6" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                    </div>
+                </div>
+                <div style="text-align:right;margin-top:10px;">
+                    <button type="button" id="cancelReg" class="btn btn-outline" style="margin-right:8px;">Cancelar</button>
+                    <button type="submit" class="btn">Registrarse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const openBtn = document.getElementById('openRegisterBtn');
+        const modal = document.getElementById('registerModal');
+        const closeBtn = document.getElementById('closeRegister');
+        const cancelBtn = document.getElementById('cancelReg');
+        const form = document.getElementById('homeRegisterForm');
+        const msg = document.getElementById('regMsg');
+
+        function openModal(){ msg.textContent=''; modal.style.display = 'flex'; }
+        function closeModal(){ modal.style.display = 'none'; }
+
+        openBtn && openBtn.addEventListener('click', openModal);
+        closeBtn && closeBtn.addEventListener('click', closeModal);
+        cancelBtn && cancelBtn.addEventListener('click', closeModal);
+        modal && modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+
+        form && form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            msg.style.color = 'red';
+            msg.textContent = '';
+            const username = document.getElementById('r_username').value.trim();
+            const name = document.getElementById('r_name').value.trim();
+            const surname = document.getElementById('r_surname').value.trim();
+            const email = document.getElementById('r_email').value.trim();
+            const password = document.getElementById('r_password').value;
+            const password2 = document.getElementById('r_password2').value;
+
+            if(!username || !name || !email || !password){ msg.textContent = 'Rellena los campos obligatorios'; return; }
+            if(password !== password2){ msg.textContent = 'Las contraseñas no coinciden'; return; }
+
+            const payload = { username, name, surname, email, password };
+
+            // Try candidate endpoints in order until one returns a JSON response
+            const candidates = [
+                'login/register_action.php',
+                '/app/login/register_action.php',
+                'app/login/register_action.php',
+                '/login/register_action.php'
+            ];
+
+            let lastError = null;
+            for (const url of candidates) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // If we get a 404, try next candidate
+                    if (res.status === 404) {
+                        lastError = `404 Not Found at ${url}`;
+                        continue;
+                    }
+
+                    const text = await res.text();
+                    let data = null;
+                    try { data = JSON.parse(text); } catch (e) { /* not json */ }
+
+                    if (!data) {
+                        msg.textContent = `Respuesta no-JSON (${res.status}) desde ${url}: ` + text.substring(0, 300);
+                        lastError = `Non-JSON response (${res.status})`;
+                        break;
+                    }
+
+                    if (data.success) {
+                        msg.style.color = 'green';
+                        msg.textContent = data.message || 'Registro correcto';
+                        setTimeout(()=>{ window.location.href = 'login/index.php'; }, 900);
+                        return;
+                    } else {
+                        msg.style.color = 'red';
+                        msg.textContent = data.message || `Error en registro (${res.status})`;
+                        return;
+                    }
+
+                } catch (err) {
+                    lastError = `${err.message} at ${url}`;
+                    // try next candidate
+                    continue;
+                }
+            }
+
+            // If we reach here nothing succeeded
+            msg.style.color = 'red';
+            msg.textContent = 'Error de red o servidor. ' + (lastError ? ('Detalle: ' + lastError) : 'Sin respuesta');
+        });
+    })();
+    </script>
+
     <footer>
         <div class="container">
             <div class="footer-content">
