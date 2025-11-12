@@ -1,8 +1,6 @@
 services:
   web:
-    build: .  # Necesitas un Dockerfile en tu directorio
-    # Alternativamente usa una imagen existente:
-    # image: nginx:alpine
+    build: .
     environment:
       ALLOW_OVERRIDE: "true"
     ports:
@@ -17,6 +15,7 @@ services:
     restart: always
     volumes:
       - ./mysql:/var/lib/mysql
+      - ./database_base.sql:/docker-entrypoint-initdb.d/database_base.sql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: admin

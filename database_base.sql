@@ -71,7 +71,7 @@ CREATE TABLE `Usuarios` (
 --
 
 INSERT INTO `Usuarios` (`id`, `username`, `nombre`, `apellidos`, `mail`, `password`, `activo`, `rol`) VALUES
-(1, 'admin', 'Administrador', 'API', 'alarrazabal@innoboatbizkaia.eus', '$2y$10$3OqHLtpMWfvzCJPZPz6sWOUEVizWDdY0eozC1Tn7AHQhd6EHpCBli', 1, 2);
+(1, 'admin', 'Administrador', 'API', 'admin@apicolab.eus', '$2y$10$3OqHLtpMWfvzCJPZPz6sWOUEVizWDdY0eozC1Tn7AHQhd6EHpCBli', 1, 2);
 
 --
 -- Índices para tablas volcadas
