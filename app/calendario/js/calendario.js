@@ -28,10 +28,15 @@ function cambiarVista(vista) {
     });
     
     // Mostrar vista seleccionada
-    document.getElementById(`vista${vista.charAt(0).toUpperCase() + vista.slice(1)}`).style.display = 'block';
+    const vistaId = vista === 'chat' ? 'vistaChat' : `vista${vista.charAt(0).toUpperCase() + vista.slice(1)}`;
+    document.getElementById(vistaId).style.display = 'block';
     
-    // Cargar eventos específicos para esta vista
-    cargarEventos();
+    // Cargar eventos o chat según la vista
+    if (vista === 'chat') {
+        loadMensajesGlobal();
+    } else {
+        cargarEventos();
+    }
 }
 
 function navegarFecha(direccion) {
@@ -438,6 +443,9 @@ function mostrarModalAgregarEvento(fecha = null) {
     document.getElementById('modalTitulo').textContent = 'Agregar Evento';
     document.getElementById('formEvento').reset();
     document.getElementById('eventoId').value = '';
+    // Ocultar sección de encuestas para eventos nuevos
+    const encuestasSection = document.getElementById('encuestasSection');
+    if (encuestasSection) encuestasSection.style.display = 'none';
     
     // Restaurar botones por defecto
     document.querySelector('.form-actions').innerHTML = `
@@ -475,14 +483,6 @@ function mostrarModalAgregarEvento(fecha = null) {
     });
     
     document.getElementById('modalEvento').style.display = 'block';
-    // Cargar encuestas asociadas a este evento (si existen)
-    try {
-        if (evento && evento.id) {
-            loadEncuestas(evento.id);
-        }
-    } catch (e) {
-        console.error('Error cargando encuestas:', e);
-    }
 }
 
 // --- Funciones para encuestas / votaciones ---
@@ -490,8 +490,11 @@ let _currentEventoParaEncuestas = null;
 
 function abrirCrearEncuesta() {
     // Abrir modal de crear encuesta para el evento actualmente cargado en el modal
-    const id = (eventoEditando && eventoEditando.id) ? eventoEditando.id : null;
-    _currentEventoParaEncuestas = id;
+    if (!eventoEditando || !eventoEditando.id) {
+        alert('Debe abrir un evento para crear una encuesta');
+        return;
+    }
+    _currentEventoParaEncuestas = eventoEditando.id;
     document.getElementById('encTitulo').value = '';
     document.getElementById('encDescripcion').value = '';
     document.getElementById('encOpciones').value = '';
@@ -546,15 +549,22 @@ function loadEncuestas(idEvento) {
     const container = document.getElementById('encuestasContainer');
     container.innerHTML = 'Cargando encuestas...';
     fetch(`cl/obtener_encuestas.php?idEvento=${encodeURIComponent(idEvento)}`)
-        .then(r => r.json())
+        .then(r => {
+            console.log('Response status:', r.status);
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
+        })
         .then(data => {
-            if (!data.success) {
-                container.innerHTML = 'No se pudieron cargar las encuestas.';
+            console.log('loadEncuestas data:', data);
+            if (!data || !data.success) {
+                container.innerHTML = '';
                 return;
             }
             const encuestas = data.encuestas || [];
             if (encuestas.length === 0) {
-                container.innerHTML = '<div>No hay encuestas para este evento.</div>';
+                container.innerHTML = '';
                 return;
             }
 
@@ -649,6 +659,13 @@ function mostrarDetallesEvento(evento) {
     
     document.getElementById('horaIni').value = evento.horaIni;
     document.getElementById('horaFin').value = evento.horaFin;
+    
+    // Mostrar sección de encuestas solo en detalles
+    const encuestasSection = document.getElementById('encuestasSection');
+    if (encuestasSection) encuestasSection.style.display = 'block';
+    
+    // Cargar encuestas para este evento
+    loadEncuestas(evento.id);
     
     // Deshabilitar campos para solo lectura
     document.querySelectorAll('#formEvento input, #formEvento textarea').forEach(input => {
@@ -975,7 +992,113 @@ document.addEventListener('DOMContentLoaded', function() {
             cerrarModalConfirmacion();
         }
     });
+    
+    // Permite Enter en input de mensaje de chat global para enviar
+    const chatInput = document.getElementById('chatInputMensaje');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                enviarMensajeGlobal();
+            }
+        });
+    }
 });
+
+// --- Funciones para chat global ---
+let _chatRefreshInterval = null;
+
+function loadMensajesGlobal() {
+    const container = document.getElementById('chatMensajesList');
+    
+    fetch(`cl/obtener_mensajes.php`)
+        .then(r => r.json())
+        .then(data => {
+            console.log('loadMensajesGlobal data:', data);
+            if (!data || !data.success) {
+                container.innerHTML = '';
+                return;
+            }
+            const mensajes = data.mensajes || [];
+            container.innerHTML = '';
+            
+            mensajes.forEach(msg => {
+                const msgEl = document.createElement('div');
+                msgEl.className = 'chat-mensaje';
+                msgEl.style.cssText = 'margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #007bff;';
+                
+                const autor = `${msg.nombre} ${msg.apellidos}`.trim() || msg.username;
+                const fecha = new Date(msg.fechaCreado).toLocaleTimeString();
+                
+                msgEl.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                        <strong>${autor}</strong>
+                        <span style="color: #999;">${fecha}</span>
+                    </div>
+                    <div style="margin-top: 4px;">${escapeHtml(msg.mensaje)}</div>
+                `;
+                
+                container.appendChild(msgEl);
+            });
+            
+            // Auto-scroll al último mensaje
+            container.scrollTop = container.scrollHeight;
+        })
+        .catch(err => {
+            console.error('Error loadMensajesGlobal:', err);
+            container.innerHTML = '<div style="color: red;">Error cargando mensajes</div>';
+        });
+}
+
+function enviarMensajeGlobal() {
+    const input = document.getElementById('chatInputMensaje');
+    const mensaje = input.value.trim();
+    
+    if (!mensaje) {
+        alert('Escribe un mensaje');
+        return;
+    }
+
+    const payload = {
+        mensaje: mensaje
+    };
+
+    input.disabled = true;
+
+    fetch('cl/enviar_mensaje.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            input.value = '';
+            loadMensajesGlobal();
+        } else {
+            alert('Error: ' + res.message);
+        }
+    })
+    .catch(err => {
+        console.error('Error enviarMensajeGlobal:', err);
+        alert('Error al enviar mensaje');
+    })
+    .finally(() => {
+        input.disabled = false;
+        input.focus();
+    });
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
 
 // Exportar funciones globales
 window.inicializarCalendario = inicializarCalendario;
@@ -998,3 +1121,5 @@ window.crearEncuesta = crearEncuesta;
 window.loadEncuestas = loadEncuestas;
 window.votarEncuesta = votarEncuesta;
 window.mostrarResultados = mostrarResultados;
+window.loadMensajesGlobal = loadMensajesGlobal;
+window.enviarMensajeGlobal = enviarMensajeGlobal;
