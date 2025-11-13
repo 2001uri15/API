@@ -417,7 +417,7 @@ function renderizarVistaLista() {
                 <p>${evento.descripcion || 'Sin descripción'}</p>
             </div>
             <div class="event-actions">
-                <button class="asistencia-btn" onclick="toggleAsistencia(${evento.id})">
+                <button class="asistencia-btn" data-evento="${evento.id}" onclick="toggleAsistencia(${evento.id})">
                     ${evento.asistiendo ? 'No asistiré' : 'Asistiré'}
                 </button>
                 <button class="btn btn-outline" onclick="editarEvento(${evento.id})">Editar</button>
@@ -475,6 +475,166 @@ function mostrarModalAgregarEvento(fecha = null) {
     });
     
     document.getElementById('modalEvento').style.display = 'block';
+    // Cargar encuestas asociadas a este evento (si existen)
+    try {
+        if (evento && evento.id) {
+            loadEncuestas(evento.id);
+        }
+    } catch (e) {
+        console.error('Error cargando encuestas:', e);
+    }
+}
+
+// --- Funciones para encuestas / votaciones ---
+let _currentEventoParaEncuestas = null;
+
+function abrirCrearEncuesta() {
+    // Abrir modal de crear encuesta para el evento actualmente cargado en el modal
+    const id = (eventoEditando && eventoEditando.id) ? eventoEditando.id : null;
+    _currentEventoParaEncuestas = id;
+    document.getElementById('encTitulo').value = '';
+    document.getElementById('encDescripcion').value = '';
+    document.getElementById('encOpciones').value = '';
+    document.getElementById('modalCrearEncuesta').style.display = 'block';
+}
+
+function cerrarModalCrearEncuesta() {
+    document.getElementById('modalCrearEncuesta').style.display = 'none';
+}
+
+function crearEncuesta(evt) {
+    const titulo = document.getElementById('encTitulo').value.trim();
+    const descripcion = document.getElementById('encDescripcion').value.trim();
+    const opcionesRaw = document.getElementById('encOpciones').value.trim();
+    if (!titulo || !opcionesRaw) {
+        alert('Introduce un título y al menos una opción (una por línea)');
+        return;
+    }
+
+    const opciones = opcionesRaw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+
+    const payload = {
+        idEvento: _currentEventoParaEncuestas,
+        titulo: titulo,
+        descripcion: descripcion,
+        opciones: opciones
+    };
+
+    const btn = evt ? evt.target : null;
+    if (btn) btn.disabled = true;
+
+    fetch('cl/crear_encuesta.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            cerrarModalCrearEncuesta();
+            if (_currentEventoParaEncuestas) loadEncuestas(_currentEventoParaEncuestas);
+        } else {
+            alert('Error creando encuesta');
+        }
+    }).catch(err => {
+        console.error('Error crearEncuesta:', err);
+        alert('Error al crear encuesta');
+    }).finally(() => { if (btn) btn.disabled = false; });
+}
+
+function loadEncuestas(idEvento) {
+    const container = document.getElementById('encuestasContainer');
+    container.innerHTML = 'Cargando encuestas...';
+    fetch(`cl/obtener_encuestas.php?idEvento=${encodeURIComponent(idEvento)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                container.innerHTML = 'No se pudieron cargar las encuestas.';
+                return;
+            }
+            const encuestas = data.encuestas || [];
+            if (encuestas.length === 0) {
+                container.innerHTML = '<div>No hay encuestas para este evento.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            encuestas.forEach(enc => {
+                const box = document.createElement('div');
+                box.className = 'encuesta-box';
+                box.innerHTML = `<strong>${enc.titulo}</strong><div class="enc-desc">${enc.descripcion || ''}</div>`;
+
+                const list = document.createElement('div');
+                list.className = 'enc-opciones';
+                enc.opciones.forEach(opt => {
+                    const optEl = document.createElement('div');
+                    optEl.className = 'enc-opcion';
+                    const boton = document.createElement('button');
+                    boton.className = 'btn btn-outline';
+                    boton.textContent = opt.texto;
+                    boton.onclick = () => votarEncuesta(enc.id, opt.id);
+                    if (enc.votoSeleccionado && enc.votoSeleccionado === opt.id) {
+                        boton.classList.add('asistiendo');
+                        boton.textContent = opt.texto + ' (tu voto)';
+                    }
+                    optEl.appendChild(boton);
+                    list.appendChild(optEl);
+                });
+
+                // botón para ver resultados
+                const btnRes = document.createElement('button');
+                btnRes.className = 'btn btn-outline';
+                btnRes.style.marginLeft = '8px';
+                btnRes.textContent = 'Ver resultados';
+                btnRes.onclick = () => mostrarResultados(enc.id);
+
+                box.appendChild(list);
+                box.appendChild(btnRes);
+                container.appendChild(box);
+            });
+        })
+        .catch(err => {
+            console.error('Error loadEncuestas:', err);
+            container.innerHTML = 'Error cargando encuestas.';
+        });
+}
+
+function votarEncuesta(idEncuesta, idOpcion) {
+    fetch('cl/votar_encuesta.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idEncuesta: idEncuesta, idOpcion: idOpcion })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            // refrescar encuestas y resultados
+            if (_currentEventoParaEncuestas) loadEncuestas(_currentEventoParaEncuestas);
+        } else {
+            alert('Error al votar.');
+        }
+    })
+    .catch(err => {
+        console.error('Error votarEncuesta:', err);
+        alert('Error al enviar voto');
+    });
+}
+
+function mostrarResultados(idEncuesta) {
+    fetch(`cl/obtener_resultados.php?idEncuesta=${encodeURIComponent(idEncuesta)}`)
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success) {
+                alert('No se pudieron obtener resultados');
+                return;
+            }
+            const rows = res.resultados.map(row => `${row.texto}: ${row.votos}`).join('\n');
+            alert('Resultados:\n' + rows);
+        })
+        .catch(err => {
+            console.error('Error obtener resultados:', err);
+            alert('Error obteniendo resultados');
+        });
 }
 
 function mostrarDetallesEvento(evento) {
@@ -647,12 +807,15 @@ function confirmarEliminarEvento(id) {
 }
 
 function toggleAsistencia(idEvento) {
-    const button = event.target;
-    const originalText = button.textContent;
-    
-    button.disabled = true;
-    button.textContent = 'Actualizando...';
-    
+    // Find the button corresponding to this event
+    const button = document.querySelector(`.asistencia-btn[data-evento="${idEvento}"]`);
+    const originalText = button ? button.textContent : '';
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'Actualizando...';
+    }
+
     fetch('cl/asistir_evento.php', {
         method: 'POST',
         headers: {
@@ -673,8 +836,10 @@ function toggleAsistencia(idEvento) {
         alert('Error al actualizar asistencia');
     })
     .finally(() => {
-        button.disabled = false;
-        button.textContent = originalText;
+        if (button) {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
     });
 }
 
@@ -827,3 +992,9 @@ window.confirmarEliminarEvento = confirmarEliminarEvento;
 window.toggleAsistencia = toggleAsistencia;
 window.cerrarModal = cerrarModal;
 window.cerrarModalConfirmacion = cerrarModalConfirmacion;
+window.abrirCrearEncuesta = abrirCrearEncuesta;
+window.cerrarModalCrearEncuesta = cerrarModalCrearEncuesta;
+window.crearEncuesta = crearEncuesta;
+window.loadEncuestas = loadEncuestas;
+window.votarEncuesta = votarEncuesta;
+window.mostrarResultados = mostrarResultados;

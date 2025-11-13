@@ -12,7 +12,8 @@ if (!isset($conn) || !($conn instanceof mysqli)) {
     exit;
 }
 
-$userId = $_SESSION['usuario_id'] ?? 1;
+    // Use unified session key set by login: 'user_id'
+    $userId = $_SESSION['user_id'] ?? null;
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);

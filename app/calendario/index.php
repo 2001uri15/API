@@ -120,6 +120,15 @@ require_once '../templates/sidebar.php';
                 <button type="submit" class="btn btn-primary">Guardar</button>
             </div>
         </form>
+
+        <!-- Sección de encuestas asociadas al evento -->
+        <div id="encuestasSection" style="margin-top:16px;">
+            <h4>Encuestas</h4>
+            <div id="encuestasContainer">Cargando encuestas...</div>
+            <div style="margin-top:8px;">
+                <button type="button" class="btn btn-outline" id="btnCrearEncuesta" onclick="abrirCrearEncuesta()">Crear Encuesta</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -136,6 +145,34 @@ require_once '../templates/sidebar.php';
         <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirmacion()">Cancelar</button>
             <button type="button" class="btn btn-danger" id="btnConfirmarAccion">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear encuesta -->
+<div id="modalCrearEncuesta" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Crear Encuesta</h3>
+            <span class="close" onclick="cerrarModalCrearEncuesta()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="encTitulo">Título:</label>
+                <input type="text" id="encTitulo" />
+            </div>
+            <div class="form-group">
+                <label for="encDescripcion">Descripción (opcional):</label>
+                <textarea id="encDescripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="encOpciones">Opciones (una por línea):</label>
+                <textarea id="encOpciones" rows="5" placeholder="Escribe cada opción en una línea"></textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalCrearEncuesta()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="crearEncuesta(event)">Crear</button>
         </div>
     </div>
 </div>

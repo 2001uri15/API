@@ -25,6 +25,34 @@ try {
         throw new Exception('ID inválido');
     }
 
+    $userId = $_SESSION['user_id'] ?? null;
+    $userRol = $_SESSION['rol'] ?? 0;
+
+    if (!$userId) {
+        throw new Exception('No autenticado');
+    }
+
+    // Permission check: only the creator (creador) or admins (rol==2) can delete
+    $sqlOwner = "SELECT creador FROM CALENDARIO_Eventos WHERE id = ? LIMIT 1";
+    $stmtOwner = $conn->prepare($sqlOwner);
+    if (!$stmtOwner) {
+        throw new Exception("Error preparando consulta owner: " . $conn->error);
+    }
+    $stmtOwner->bind_param('i', $id);
+    $stmtOwner->execute();
+    $resOwner = $stmtOwner->get_result();
+    if (!$resOwner || $resOwner->num_rows === 0) {
+        throw new Exception('Evento no encontrado');
+    }
+    $rowOwner = $resOwner->fetch_assoc();
+    $creador = (int)$rowOwner['creador'];
+    $stmtOwner->close();
+
+    if ($userRol != 2 && $creador !== (int)$userId) {
+        echo json_encode(['success' => false, 'message' => 'No tienes permiso para eliminar este evento']);
+        exit;
+    }
+
     // Primero eliminar las referencias en CALENDARIO_Evento_Usuario
     $sqlDeleteRefs = "DELETE FROM CALENDARIO_Evento_Usuario WHERE idEvento = ?";
     $stmtRefs = $conn->prepare($sqlDeleteRefs);

@@ -14,7 +14,8 @@ if (!isset($conn) || !($conn instanceof mysqli)) {
     exit;
 }
 
-$userId = $_SESSION['usuario_id'] ?? 1; // Para testing, usa 1. Ajusta según tu sistema de autenticación
+// Use the unified session key set by login. If not logged in, use 0 so attendance checks return false
+$userId = $_SESSION['user_id'] ?? 0;
 
 try {
     // Obtener parámetros de filtro por fecha

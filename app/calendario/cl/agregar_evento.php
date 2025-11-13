@@ -32,15 +32,15 @@ try {
         throw new Exception('Todos los campos obligatorios deben ser completados');
     }
 
-    // include fechaCreado using NOW() to satisfy NOT NULL constraint
-    $sql = "INSERT INTO CALENDARIO_Eventos (nombre, descripcion, fecha, horaIni, horaFin, fechaCreado) VALUES (?, ?, ?, ?, ?, NOW())";
+    // include fechaCreado using NOW() and creador (user id)
+    $sql = "INSERT INTO CALENDARIO_Eventos (nombre, descripcion, fecha, horaIni, horaFin, fechaCreado, creador) VALUES (?, ?, ?, ?, ?, NOW(), ?)";
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
         throw new Exception("Error preparando consulta: " . $conn->error);
     }
 
-    $stmt->bind_param("sssss", $nombre, $descripcion, $fecha, $horaIni, $horaFin);
+    $stmt->bind_param("sssssi", $nombre, $descripcion, $fecha, $horaIni, $horaFin, $userId);
     
     if ($stmt->execute()) {
         $nuevoId = $stmt->insert_id;
