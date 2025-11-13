@@ -32,7 +32,8 @@ try {
         throw new Exception('Todos los campos obligatorios deben ser completados');
     }
 
-    $sql = "INSERT INTO CALENDARIO_Eventos (nombre, descripcion, fecha, horaIni, horaFin) VALUES (?, ?, ?, ?, ?)";
+    // include fechaCreado using NOW() to satisfy NOT NULL constraint
+    $sql = "INSERT INTO CALENDARIO_Eventos (nombre, descripcion, fecha, horaIni, horaFin, fechaCreado) VALUES (?, ?, ?, ?, ?, NOW())";
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
