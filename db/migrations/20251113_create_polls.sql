@@ -31,4 +31,3 @@ CREATE TABLE IF NOT EXISTS `Encuesta_Votos` (
   UNIQUE KEY `unique_encuesta_usuario` (`idEncuesta`, `idUsuario`)
 );
 
--- Nota: ejecutar con privilegios suficientes. Si la base de datos ya tiene las tablas, las instrucciones no harán nada.

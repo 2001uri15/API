@@ -28,15 +28,10 @@ function cambiarVista(vista) {
     });
     
     // Mostrar vista seleccionada
-    const vistaId = vista === 'chat' ? 'vistaChat' : `vista${vista.charAt(0).toUpperCase() + vista.slice(1)}`;
-    document.getElementById(vistaId).style.display = 'block';
+    document.getElementById(`vista${vista.charAt(0).toUpperCase() + vista.slice(1)}`).style.display = 'block';
     
-    // Cargar eventos o chat según la vista
-    if (vista === 'chat') {
-        loadMensajesGlobal();
-    } else {
-        cargarEventos();
-    }
+    // Cargar eventos específicos para esta vista
+    cargarEventos();
 }
 
 function navegarFecha(direccion) {
@@ -564,7 +559,7 @@ function loadEncuestas(idEvento) {
             }
             const encuestas = data.encuestas || [];
             if (encuestas.length === 0) {
-                container.innerHTML = '';
+                container.innerHTML = '<div>No hay encuestas para este evento.</div>';
                 return;
             }
 
@@ -992,113 +987,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cerrarModalConfirmacion();
         }
     });
-    
-    // Permite Enter en input de mensaje de chat global para enviar
-    const chatInput = document.getElementById('chatInputMensaje');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                enviarMensajeGlobal();
-            }
-        });
-    }
 });
-
-// --- Funciones para chat global ---
-let _chatRefreshInterval = null;
-
-function loadMensajesGlobal() {
-    const container = document.getElementById('chatMensajesList');
-    
-    fetch(`cl/obtener_mensajes.php`)
-        .then(r => r.json())
-        .then(data => {
-            console.log('loadMensajesGlobal data:', data);
-            if (!data || !data.success) {
-                container.innerHTML = '';
-                return;
-            }
-            const mensajes = data.mensajes || [];
-            container.innerHTML = '';
-            
-            mensajes.forEach(msg => {
-                const msgEl = document.createElement('div');
-                msgEl.className = 'chat-mensaje';
-                msgEl.style.cssText = 'margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #007bff;';
-                
-                const autor = `${msg.nombre} ${msg.apellidos}`.trim() || msg.username;
-                const fecha = new Date(msg.fechaCreado).toLocaleTimeString();
-                
-                msgEl.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                        <strong>${autor}</strong>
-                        <span style="color: #999;">${fecha}</span>
-                    </div>
-                    <div style="margin-top: 4px;">${escapeHtml(msg.mensaje)}</div>
-                `;
-                
-                container.appendChild(msgEl);
-            });
-            
-            // Auto-scroll al último mensaje
-            container.scrollTop = container.scrollHeight;
-        })
-        .catch(err => {
-            console.error('Error loadMensajesGlobal:', err);
-            container.innerHTML = '<div style="color: red;">Error cargando mensajes</div>';
-        });
-}
-
-function enviarMensajeGlobal() {
-    const input = document.getElementById('chatInputMensaje');
-    const mensaje = input.value.trim();
-    
-    if (!mensaje) {
-        alert('Escribe un mensaje');
-        return;
-    }
-
-    const payload = {
-        mensaje: mensaje
-    };
-
-    input.disabled = true;
-
-    fetch('cl/enviar_mensaje.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.success) {
-            input.value = '';
-            loadMensajesGlobal();
-        } else {
-            alert('Error: ' + res.message);
-        }
-    })
-    .catch(err => {
-        console.error('Error enviarMensajeGlobal:', err);
-        alert('Error al enviar mensaje');
-    })
-    .finally(() => {
-        input.disabled = false;
-        input.focus();
-    });
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
 
 // Exportar funciones globales
 window.inicializarCalendario = inicializarCalendario;
@@ -1121,5 +1010,3 @@ window.crearEncuesta = crearEncuesta;
 window.loadEncuestas = loadEncuestas;
 window.votarEncuesta = votarEncuesta;
 window.mostrarResultados = mostrarResultados;
-window.loadMensajesGlobal = loadMensajesGlobal;
-window.enviarMensajeGlobal = enviarMensajeGlobal;

@@ -29,7 +29,6 @@ require_once '../templates/sidebar.php';
                     <button class="btn btn-outline" onclick="cambiarVista('mes')" id="btnVistaMes">Mes</button>
                     <button class="btn btn-outline" onclick="cambiarVista('semana')" id="btnVistaSemana">Semana</button>
                     <button class="btn btn-outline" onclick="cambiarVista('lista')" id="btnVistaLista">Lista</button>
-                    <button class="btn btn-outline" onclick="cambiarVista('chat')" id="btnVistaChat">Chat</button>
                 </div>
                 <div class="navigation-controls">
                     <button class="btn btn-outline" onclick="navegarFecha('anterior')">
@@ -82,19 +81,6 @@ require_once '../templates/sidebar.php';
         <div id="vistaLista" class="calendar-view" style="display: none;">
             <div id="listaEventos" class="event-list"></div>
         </div>
-
-        <!-- Vista Chat Global -->
-        <div id="vistaChat" class="calendar-view" style="display: none;">
-            <div style="display: flex; flex-direction: column; height: 100%; gap: 8px;">
-                <div id="chatMensajesContainer" style="border: 1px solid #ddd; flex: 1; overflow-y: auto; padding: 12px; background: #f9f9f9; border-radius: 4px;">
-                    <div id="chatMensajesList">Cargando mensajes...</div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="chatInputMensaje" placeholder="Escribe tu mensaje..." style="flex:1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" />
-                    <button type="button" class="btn btn-primary" onclick="enviarMensajeGlobal()">Enviar</button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -136,7 +122,7 @@ require_once '../templates/sidebar.php';
         </form>
 
         <!-- Sección de encuestas asociadas al evento -->
-        <div id="encuestasSection" style="margin-top:16px; display:none;">
+        <div id="encuestasSection" style="margin-top:16px;">
             <h4>Encuestas</h4>
             <div id="encuestasContainer">Cargando encuestas...</div>
             <div style="margin-top:8px;">
