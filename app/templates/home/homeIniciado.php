@@ -20,16 +20,16 @@ require_once 'templates/sidebar.php';
     
     <!-- Grid de servicios -->
     <div class="services-grid">
-        <a href="/chat/index.php" class="service-card chat">
-            <span class="service-icon">💬</span>
-            <h3>Chat</h3>
-            <p>Comunícate en tiempo real con otros usuarios</p>
-        </a>
-        
         <a href="/calendario/index.php" class="service-card calendar">
             <span class="service-icon">📅</span>
             <h3>Calendario</h3>
             <p>Gestiona tus eventos y citas importantes</p>
+        </a>
+    
+        <a href="/chat/index.php" class="service-card chat">
+            <span class="service-icon">💬</span>
+            <h3>Chat</h3>
+            <p>Comunícate en tiempo real con otros usuarios</p>
         </a>
         
         <a href="usuarios/index.php" class="service-card users">
