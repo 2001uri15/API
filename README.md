@@ -1,10 +1,10 @@
 # Aspectos Profesionales de la Informática
-Este es el proyecto colectivo de Aspectos Profesionales de la Informática (API) que lo hemos desarrolado entre:
-- Ainhoa García
-- Miranda
+Este es el proyecto colaborativo de Aspectos Profesionales de la Informática (API) desarrolado por:
+- Asier Larrazabal 
 - Mario Echevarri
-- Asier Larrazabal
+- Miranda Martínez
 - Jose Belchí
+- Ainhoa García
 
 > [!NOTE]
 > Para poder acceder a la aplicacción existe este usuario por defecto:
