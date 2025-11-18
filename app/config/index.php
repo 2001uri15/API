@@ -13,7 +13,7 @@ require_once '../conn.php';
 $user_id = $_SESSION['user_id'];
 
 // Obtener el nombre de usuario 
-$sql = "SELECT username FROM usuarios WHERE id = ?";
+$sql = "SELECT username FROM Usuarios WHERE id = ?";
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
     die("Error en prepare(): " . $conn->error . " — SQL: " . $sql);
