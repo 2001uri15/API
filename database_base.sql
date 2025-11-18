@@ -97,6 +97,14 @@ CREATE TABLE IF NOT EXISTS `Encuesta_Votos` (
   UNIQUE KEY `unique_encuesta_usuario` (`idEncuesta`, `idUsuario`)
 );
 
+CREATE TABLE IF NOT EXISTS `Chat_Mensajes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `idUsuario` INT NOT NULL,
+  `mensaje` TEXT NOT NULL,
+  `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`idUsuario`) REFERENCES `Usuarios`(`id`) ON DELETE CASCADE
+);
+
 
 --
 -- Volcado de datos para la tabla `Usuarios`
