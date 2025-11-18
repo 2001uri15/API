@@ -9,71 +9,82 @@ require_once '../conn.php';
 require_once '../templates/header.php';
 require_once '../templates/sidebar.php';
 ?>
+<link rel="stylesheet" href="chat.css">
 
-<h1>Chat General</h1>
+<div class="chat-container">
+    <!-- Lista de chats -->
+    <div class="chat-list">
+        <div class="chat-list-header">
+            <input type="text" class="chat-search" id="chatSearch" placeholder="Buscar chats...">
+            <button class="new-group-btn" id="newGroupBtn">Nuevo Grupo</button>
+        </div>
+        <div class="chat-items" id="chatItems">
+            <!-- Los chats se cargarán aquí -->
+        </div>
+    </div>
 
-<style>
-.chat-box {
-    height: 400px;
-    overflow-y: scroll;
-    border: 1px solid #999;
-    padding: 10px;
-    margin-bottom: 10px;
-    background: #f5f5f5;
-}
+    <!-- Área de chat -->
+    <div class="chat-area">
+        <div class="chat-header" id="chatHeader">
+            <div id="currentChatInfo">
+                <p>Selecciona un chat para empezar a conversar</p>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Los mensajes se cargarán aquí -->
+        </div>
+        <div class="chat-input-area" id="chatInputArea" style="display: none;">
+            <form id="messageForm" class="message-input-container">
+                <input type="hidden" id="currentChatId">
+                <input type="hidden" id="currentChatType">
+                <input type="hidden" id="currentGroupId">
+                <textarea class="message-input" id="messageInput" placeholder="Escribe un mensaje..." rows="1"></textarea>
+            </form>
+            <button class="send-btn" id="sendBtn" type="button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
 
-.msg {
-    margin-bottom: 8px;
-    padding: 5px 8px;
-    border-radius: 6px;
-    background: white;
-}
-.msg .autor {
-    font-weight: bold;
-}
-.msg .fecha {
-    font-size: 11px;
-    color: #707070;
-}
-</style>
+<!-- Modal para nuevo grupo -->
+<div id="groupModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Crear Nuevo Grupo</h3>
+            <span class="close">&times;</span>
+        </div>
+        <form id="groupForm">
+            <div class="form-group">
+                <label>Nombre del grupo:</label>
+                <input type="text" id="groupName" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción (opcional):</label>
+                <textarea id="groupDesc" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Grupo</button>
+        </form>
+    </div>
+</div>
 
-<div class="chat-box" id="chatBox"></div>
+<!-- Modal para añadir miembros -->
+<div id="memberModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Añadir Miembros</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="form-group">
+            <label>Buscar usuario:</label>
+            <input type="text" id="userSearch" class="form-control" placeholder="Escribe el username...">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="group-members" id="groupMembersList"></div>
+        <button type="button" class="btn btn-success" id="addMembersBtn">Añadir Miembros</button>
+    </div>
+</div>
 
-<form id="chatForm">
-    <input type="text" name="mensaje" id="mensaje" placeholder="Escribe un mensaje..." required class="form-control">
-    <button type="submit" class="btn btn-primary" style="margin-top:5px;">Enviar</button>
-</form>
-
-<script>
-// Actualizar mensajes 
-setInterval(cargarMensajes, 1500);
-
-function cargarMensajes() {
-    fetch("fetch.php")
-    .then(res => res.text())
-    .then(html => {
-        document.getElementById("chatBox").innerHTML = html;
-        document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
-    });
-}
-
-document.getElementById("chatForm").addEventListener("submit", function(e){
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("mensaje", document.getElementById("mensaje").value);
-
-    fetch("send.php", {
-        method: "POST",
-        body: formData
-    }).then(() => {
-        document.getElementById("mensaje").value = "";
-        cargarMensajes();
-    });
-});
-
-// Cargar mensajes 
-cargarMensajes();
-</script>
+<script src="chat.js"></script>
 
 <?php require_once '../templates/footer.php'; ?>
