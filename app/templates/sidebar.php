@@ -145,7 +145,9 @@
         <li><a href="/index.php">Inicio</a></li>
         <li><a href="/chat/index.php">Chat</a></li>
         <li><a href="/calendario/index.php">Calendario</a></li>
-        <li><a href="/usuarios/index.php">Usuarios</a></li>
+        <?php if($_SESSION['rol'] === 2): ?>
+            <li><a href="/usuarios/index.php">Usuarios</a></li>
+        <?php endif; ?>
         <li><a href="/config/index.php">Configuración</a></li>
         <li><a href="/login/logout.php">Cerrar sesión</a></li>
     </ul>

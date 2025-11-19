@@ -7,7 +7,7 @@ class LogIn {
     }   
 
     public function authenticate($username, $password) {
-        $stmt = $this->conn->prepare("SELECT `id`, `username`, `nombre`, `apellidos`, `mail`, `password` FROM Usuarios WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT `id`, `username`, `nombre`, `apellidos`, `mail`, `password`, rol FROM Usuarios WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -32,6 +32,7 @@ class LogIn {
         $_SESSION['nombre'] = $userData['nombre'];
         $_SESSION['apellidos'] = $userData['apellidos'];
         $_SESSION['mail'] = $userData['mail'];
+        $_SESSION['rol'] = $userData['rol'];
     }
 
     public function logout() {
